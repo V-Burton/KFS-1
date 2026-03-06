@@ -1,13 +1,30 @@
 #include <stdint.h>
 
 uint16_t* terminal_buffer = (uint16_t*)0xB8000;
+int terminal_column = 0;
+int terminal_row = 0;
 
-int terminal_write_string(const char* data, int line) {
-    for (int i = 0; data[i] != '\0'; i++) {
-        terminal_buffer[line * 80 + i] = (uint16_t)data[i] | (uint16_t)0x0F << 8;
+void terminal_putchar(char c) {
+    if (c == '\n') {
+        terminal_column = 0;
+        terminal_row++;
+        return;
     }
-    
-    return ++line;
+    terminal_buffer[terminal_row * 80 + terminal_column] = (uint16_t)c | (uint16_t)0x0F << 8;
+    terminal_column++;
+    if (terminal_column >= 80) {
+        terminal_column = 0;
+        terminal_row++;
+    }
+    if (terminal_row >= 25) {
+        terminal_row = 0;
+    }
+}
+
+void terminal_write_string(const char* data) {
+    for (int i = 0; data[i] != '\0'; i++) {
+        terminal_putchar(data[i]);
+    }  
 }
 
 void flush_screen() {
@@ -17,10 +34,7 @@ void flush_screen() {
 }
 
 void kernel_main() {
-    int line = 0;
 
     flush_screen();
-
-    line = terminal_write_string("Welcome to KFS!", line);
-    line = terminal_write_string("42", line);
+    terminal_write_string("42");
 }
