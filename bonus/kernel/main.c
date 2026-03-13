@@ -28,6 +28,17 @@ void scroll_screen() {
 }
 
 void terminal_putchar(char c, color_t color) {
+    if (c == '\b') {
+        if (terminal_column > 0) {
+            terminal_column--;
+        } else if (terminal_row > 0) {
+            terminal_row--;
+            terminal_column = 79;
+        }
+        terminal_buffer[terminal_row * 80 + terminal_column] = (uint16_t)' ' | (uint16_t)0x0F << 8;
+        update_hardware_cursor(terminal_column, terminal_row);
+        return;
+    }
     if (c == '\n') {
         terminal_column = 0;
         terminal_row++;

@@ -38,11 +38,10 @@ void setup_idt();
 void interrupt_handler(struct registers *r);
 void terminal_putchar(char c, color_t color);
 void terminal_write_string(const char* data, color_t color);
-extern void isr0();
 extern void irq1();
 extern void isr8();
 extern void isr13();
 extern void isr14();
 extern void isr_default();
 
-#endif // IDT_HMa
+#endif // IDT_H

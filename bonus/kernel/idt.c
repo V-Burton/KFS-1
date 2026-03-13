@@ -5,6 +5,8 @@
 idt_entry_t idt[256];
 idt_ptr_t idt_ptr;
 keyboard_state_t kbd_state = {0};
+static char input_buffer[256];
+static int input_len = 0;
 
 // Table de correspondance pour le clavier AZERTY (Scancode Set 1)
 unsigned char kbd_map_lower[128] = {
@@ -90,10 +92,9 @@ void setup_idt() {
 
     set_idt_gate(33, (uint32_t)irq1);
 
-    // set_idt_gate(33, (uint32_t)irq1);
-    // set_idt_gate(8,  (uint32_t)isr8);  // Double Fault
-    // set_idt_gate(13, (uint32_t)isr13); // General Protection Fault
-    // set_idt_gate(14, (uint32_t)isr14);
+    set_idt_gate(8,  (uint32_t)isr8);  // Double Fault
+    set_idt_gate(13, (uint32_t)isr13); // General Protection Fault
+    set_idt_gate(14, (uint32_t)isr14);
 
     pic_remap(); // Remapper le PIC pour éviter les conflits avec les exceptions CPU
 
@@ -102,19 +103,68 @@ void setup_idt() {
     __asm__ volatile("sti"); // Active les interruptions
 }
 
+void print_cpu_info() {
+    uint32_t eax, ebx, ecx, edx;
+    char vendor[13];
+
+    __asm__ volatile("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(0));
+    ((uint32_t*)vendor)[0] = ebx;
+    ((uint32_t*)vendor)[1] = edx;
+    ((uint32_t*)vendor)[2] = ecx;
+    vendor[12] = '\0';
+    
+    terminal_write_string("CPU Vendor: ", 0x0B);
+    terminal_write_string(vendor, 0x0F);
+    terminal_putchar('\n', 0x0F);
+}
+
+static int str_eq(const char *a, const char *b) { 
+    while (*a && *b) {
+        if (*a++ != *b++)
+            return 0;
+    }
+    return *a == *b;
+}
+
+void evaluate_command(const char *cmd) { 
+    if (str_eq(cmd, "proc")) {
+        print_cpu_info();
+    } else if (str_eq(cmd, "clear")) {
+        flush_screen();
+    } else if (str_eq(cmd, "help")) {
+        terminal_write_string("Commandes disponibles :\n", 0x07);
+        terminal_write_string("  proc  - Affiche les informations CPU\n", 0x07);
+        terminal_write_string("  clear - Efface l'écran\n", 0x07);
+        terminal_write_string("  help  - Affiche cette aide\n", 0x07);
+    }
+}
+
 void handle_keyboard(uint8_t scancode) {
-    if (scancode == 0x2A) { // Shift Gauche enfoncé
+    if (scancode == 0x2A || scancode == 0x36) { // Shift Gauche enfoncé
         kbd_state.shift = 1;
         return;
     }
-    if (scancode == 0xAA) { // Shift Gauche relâché (0x2A + 0x80)
+    if (scancode == 0xAA || scancode == 0xB6) { // Shift Gauche relâché (0x2A + 0x80)
         kbd_state.shift = 0;
         return;
     }
 
+    if (scancode)
+
     if (scancode < 128) {
         char key = (kbd_state.shift) ? kbd_map_upper[scancode] : kbd_map_lower[scancode];
-        if (key != 0) {
+        if (key == '\b') {
+            if (input_len > 0) {
+                input_len++;
+                terminal_putchar('\b', 0x07);
+            }
+        } else if (key == '\n') {
+            terminal_putchar('\n', 0x07);
+            input_buffer[input_len] = '\0';
+            evaluate_command(input_buffer);
+            input_len = 0;
+        } else if (key != 0 && input_len < 255) {
+            input_buffer[input_len++] = key;
             terminal_putchar(key, 0x07);
         }
     }
