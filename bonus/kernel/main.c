@@ -1,9 +1,10 @@
 #include <stdint.h>
+#include "gdt.h"
+#include "idt.h"
 
-typedef uint8_t color_t;
-uint16_t* terminal_buffer = (uint16_t*)0xB8000;
 int terminal_column = 0;
 int terminal_row = 0;
+uint16_t* terminal_buffer = (uint16_t*)0xB8000;
 
 static inline void outb(uint16_t port, uint8_t val) {
     __asm__ __volatile__ ( "outb %0, %1" : : "a"(val), "Nd"(port) );
@@ -58,25 +59,16 @@ void flush_screen() {
     update_hardware_cursor(0, 0);
 }
 
-// void kernel_main() {
-
-//     flush_screen();
-//     terminal_write_string("Welcome to KFS!\n", 0x0A);
-//     terminal_write_string("42", 0x0A);
-// }
-
 void kernel_main() {
     flush_screen();
+    init_gdt();
+    setup_idt();
 
-    // On affiche 30 lignes pour forcer le scroll (l'écran fait 25 lignes)
     for (int i = 0; i < 30; i++) {
-        // On change de couleur pour bien voir le défilement
-        // i % 15 + 1 permet de varier les couleurs de 1 à 15
         color_t color = (i % 15) + 1; 
         
         terminal_write_string("Ceci est la ligne numero: ", color);
         
-        // Petit trick pour afficher le nombre (vu qu'on n'a pas encore printf)
         if (i >= 10) {
             terminal_putchar((i / 10) + '0', color);
         }

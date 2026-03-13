@@ -2,7 +2,7 @@
 CC = i686-elf-gcc
 AS = nasm
 LD = i686-elf-ld
-CFLAGS = -std=c11 -ffreestanding -O2 -Wall -Wextra -nostdlib -fno-exceptions -nodefaultlibs
+CFLAGS = -std=c11 -ffreestanding -O0 -Wall -Wextra -nostdlib -fno-exceptions -nodefaultlibs
 ASFLAGS = -f elf32
 LDFLAGS = -n -T targets/i386/linker.ld
 

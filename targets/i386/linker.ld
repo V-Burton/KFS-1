@@ -13,4 +13,22 @@ SECTIONS
     {
         *(.text)
     }
+
+    .rodata :
+    {
+        *(.rodata*)
+    }
+
+    .data : 
+    {
+        *(.data)
+    }
+
+    .bss :
+    {
+        bss_start = .;
+        *(COMMON)
+        *(.bss)
+        bss_end = .;
+    }
 }

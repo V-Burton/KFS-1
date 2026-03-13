@@ -10,11 +10,12 @@ global start
 extern kernel_main; Cette fonction est externe
 
 start:
+    cli ; 
     ; Set up the stack
-    mov esp, stack_top
-
+    mov esp, stack_top ;
     ; Call the kernel's main function
     call kernel_main
 
-    ; If kernel_main returns, halt the CPU
+.hang:
     hlt
+    jmp .hang    ; ← si hlt est interrompu, on boucle
