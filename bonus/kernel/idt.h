@@ -1,7 +1,8 @@
 #ifndef IDT_H
 #define IDT_H
 
-#include "main.h"
+#include "../printf/ft_printf.h"
+#include "microshell.h"
 
 typedef uint8_t color_t;
 
@@ -28,20 +29,32 @@ struct registers {
 typedef struct idt_entry_struct idt_entry_t;
 typedef struct idt_ptr_struct idt_ptr_t;
 
-struct keyboard_state {
-    int shift;
-};
-
-typedef struct keyboard_state keyboard_state_t;
-
 void setup_idt();
 void interrupt_handler(struct registers *r);
-void terminal_putchar(char c, color_t color);
-void terminal_write_string(const char* data, color_t color);
 extern void irq1();
+extern void isr0();
+extern void isr1();
+extern void isr2();
+extern void isr3();
+extern void isr4();
+extern void isr5();
+extern void isr6();
+extern void isr7();
 extern void isr8();
+extern void isr9();
+extern void isr10();
+extern void isr11();
+extern void isr12();
 extern void isr13();
 extern void isr14();
+extern void isr15();
+extern void isr16();
+extern void isr17();
+extern void isr18();
+extern void isr19();
+extern void isr20();
+extern void isr21();
+extern void isr_reserved();
 extern void isr_default();
 
 #endif // IDT_H

@@ -1,92 +1,16 @@
 #include <stdint.h>
 #include "gdt.h"
 #include "idt.h"
-
-int terminal_column = 0;
-int terminal_row = 0;
-uint16_t* terminal_buffer = (uint16_t*)0xB8000;
-
-static inline void outb(uint16_t port, uint8_t val) {
-    __asm__ __volatile__ ( "outb %0, %1" : : "a"(val), "Nd"(port) );
-}
-
-void update_hardware_cursor(int x, int y) {
-    uint16_t pos = y * 80 + x;
-    outb(0x3D4, 0x0F);
-    outb(0x3D5, (uint8_t) (pos & 0xFF));
-    outb(0x3D4, 0x0E);
-    outb(0x3D5, (uint8_t) ((pos >> 8) & 0xFF));
-}
-
-void scroll_screen() {
-    for (int i = 0; i < 80 * 24; i++) {
-        terminal_buffer[i] = terminal_buffer[i + 80];
-    }
-    for (int i = 80 * 24; i < 80 * 25; i++) {
-        terminal_buffer[i] = (uint16_t)' ' | (uint16_t)0x0F << 8;
-    }
-}
-
-void terminal_putchar(char c, color_t color) {
-    if (c == '\b') {
-        if (terminal_column > 0) {
-            terminal_column--;
-        } else if (terminal_row > 0) {
-            terminal_row--;
-            terminal_column = 79;
-        }
-        terminal_buffer[terminal_row * 80 + terminal_column] = (uint16_t)' ' | (uint16_t)0x0F << 8;
-        update_hardware_cursor(terminal_column, terminal_row);
-        return;
-    }
-    if (c == '\n') {
-        terminal_column = 0;
-        terminal_row++;
-    } else {
-        terminal_buffer[terminal_row * 80 + terminal_column] = (uint16_t)c | (uint16_t)color << 8;
-        terminal_column++;
-        if (terminal_column >= 80) {
-            terminal_column = 0;
-            terminal_row++;
-        }
-    }
-    if (terminal_row >= 25) {
-        scroll_screen();
-        terminal_row = 24;
-    }
-    update_hardware_cursor(terminal_column, terminal_row);
-}
-
-void terminal_write_string(const char* data, color_t color) {
-    for (int i = 0; data[i] != '\0'; i++) {
-        terminal_putchar(data[i], color);
-    }  
-}
-
-void flush_screen() {
-    for (int i = 0; i < 80 * 25; i++) {
-        terminal_buffer[i] = (uint16_t)' ' | (uint16_t)0x0F << 8;
-    }
-    update_hardware_cursor(0, 0);
-}
+#include "../printf/ft_printf.h"
 
 void kernel_main() {
     flush_screen();
     init_gdt();
     setup_idt();
-
-    for (int i = 0; i < 30; i++) {
-        color_t color = (i % 15) + 1; 
-        
-        terminal_write_string("Ceci est la ligne numero: ", color);
-        
-        if (i >= 10) {
-            terminal_putchar((i / 10) + '0', color);
-        }
-        terminal_putchar((i % 10) + '0', color);
-        
-        terminal_putchar('\n', color);
-    }
-
-    terminal_write_string("Si tu vois ce message, le scroll a fonctionne !", 0x0E); // Jaune
+    ft_printf(0x0A, "Commandes disponibles :\n");
+    ft_printf(0x0A, "  proc  - Affiche les informations CPU\n");
+    ft_printf(0x0A, "  clear - Efface l'ecran\n");
+    ft_printf(0x0A, "  addr_gdt - Affiche l'adresse de la GDT\n");
+    ft_printf(0x0A, "  help  - Affiche cette aide\n");
+    ft_printf(0x0E, "KFS>");
 }

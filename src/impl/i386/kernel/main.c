@@ -29,6 +29,8 @@ void terminal_write_string(const char* data) {
 
 void flush_screen() {
     for (int i = 0; i < 80 * 25; i++) {
+        // Chaque caractère occupe 16 bits:
+        // 0-7 pour le caractère et 8-15 pour l'attribut (couleur fond et texte).
         terminal_buffer[i] = (uint16_t)' ' | (uint16_t)0x0F << 8;
     }
 }

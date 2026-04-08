@@ -18,12 +18,12 @@ void init_gdt() {
     gdt_ptr.base = (uint32_t)gdt_ptr_entries;
 
     gdt_set_gate(gdt_ptr_entries, 0, 0, 0, 0, 0);             // Null segment
-    gdt_set_gate(gdt_ptr_entries, 1, 0, 0xFFFFF, 0x9B, 0x0c); // Code segment
-    gdt_set_gate(gdt_ptr_entries, 2, 0, 0xFFFFF, 0x93, 0x0c); // Data segment
-    gdt_set_gate(gdt_ptr_entries, 3, 0, 0xFFFFF, 0x93, 0x0c); // stack segment
-    gdt_set_gate(gdt_ptr_entries, 4, 0, 0xFFFFF, 0xFA, 0x0c); // code segment pour les applications en user mode
-    gdt_set_gate(gdt_ptr_entries, 5, 0, 0xFFFFF, 0xF2, 0x0c); // data segment pour les applications en user mode
-    gdt_set_gate(gdt_ptr_entries, 6, 0, 0xFFFFF, 0xF2, 0x0c); // stack segment pour les applications en user mode
+    gdt_set_gate(gdt_ptr_entries, 1, 0, 0xFFFFF, 0x9A, 0x0CF); // Code segment
+    gdt_set_gate(gdt_ptr_entries, 2, 0, 0xFFFFF, 0x92, 0x0CF); // Data segment
+    gdt_set_gate(gdt_ptr_entries, 3, 0, 0xFFFFF, 0x92, 0x0CF); // stack segment
+    gdt_set_gate(gdt_ptr_entries, 4, 0, 0xFFFFF, 0xFA, 0x0CF); // code segment pour les applications en user mode
+    gdt_set_gate(gdt_ptr_entries, 5, 0, 0xFFFFF, 0xF2, 0x0CF); // data segment pour les applications en user mode
+    gdt_set_gate(gdt_ptr_entries, 6, 0, 0xFFFFF, 0xF2, 0x0CF); // stack segment pour les applications en user mode
     // -> Data segment et stack segment sont techniquement identique et donc je pourrais utiliser le meme segment pour les deux.
 
     gdt_flush((uint32_t)&gdt_ptr);
